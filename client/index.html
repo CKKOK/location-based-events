@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Run 2 Testing</title>
+    <style>
+        #mapOutput {
+            height: 200px;
+            width: 200px;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <button id="getLocationOnce">Log current location</button> <br>
+    <button id="toggleLocationWatch">Start location watch</button> <br>
+    <button id="showMap">Show map</button> <br>
+    <div id="mapOutput">
+
+    </div>
+    <div id="output">
+        Stuff going on here.
+    </div>
+    <script src="./js/main.js"></script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=showMap"></script>
+</body>
+</html>
