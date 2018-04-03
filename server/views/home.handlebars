@@ -7,8 +7,8 @@
     <title>Run 2 Testing</title>
     <style>
         #mapOutput {
-            height: 200px;
-            width: 200px;
+            height: 400px;
+            width: 400px;
         }
 
         html, body {
@@ -19,17 +19,20 @@
     </style>
 </head>
 <body>
+    This is home 2. <br>
     <button id="getLocationOnce">Log current location</button> <br>
     <button id="toggleLocationWatch">Start location watch</button> <br>
     <button id="showMap">Show map</button> <br>
+    <button id="clearMap">Clear map</button> <br>
     <div id="mapOutput">
 
     </div>
     <div id="output">
-        Stuff going on here.
+        Stuff going on here.<br>
     </div>
-    <script src="./js/main.js"></script>
+    <script src="js/main.js"></script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=showMap"></script>
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
 </body>
 </html>
+
