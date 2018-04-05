@@ -4,35 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
+    <script src="js/js.cookie.js"></script>
     <title>Run 2 Testing</title>
     <style>
         #mapOutput {
-            height: 400px;
-            width: 400px;
+            flex:auto;
+            order:2;
+            {{!-- top:60px; --}}
+            {{!-- left:0;
+            bottom:0; --}}
+            width: 100%;
+            z-index: 1;
         }
 
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
+            overflow:hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction:column;
+        }
+
+        .displaypane {
+            position: fixed;
+            top: 95%;
+            left: 10%;
+            width: 80%;
+            border-radius: 8px;
+            background-color: white;
+            color: black;
+            transition: 0.5s;
+            z-index: 10;
+        }
+
+        .displaypane-title {
+            z-index: 10;
+            background-color: brown;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            color: white;
+            font-weight: 700;
+            height: 3em;
+            line-height: 3em;
+            font-size: 1.5em;
+            padding-left: 1em;
+            padding-right: 1em;
+        }
+
+        .displaypane-content {
+            z-index: 10;
+            font-size: 1.5em;
+            line-height: 2em;
+            padding: 1em;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        label, input {
+            line-height: 1.25em;
+            font-size: 1em;
+        }
+
+        .userloginfield {
+            width: 80%;
+        }
+
+        #topPane {
+            order:1;
+            height: 60px;
+            background-color: blue;
         }
     </style>
 </head>
 <body>
-    This is home 2. <br>
-    <button id="getLocationOnce">Log current location</button> <br>
-    <button id="toggleLocationWatch">Start location watch</button> <br>
-    <button id="showMap">Show map</button> <br>
-    <button id="clearMap">Clear map</button> <br>
-    <div id="mapOutput">
-
+    <div class="displaypane">
+        <div class="displaypane-title">
+            Login
+        </div>
+        <div class="displaypane-content">
+            <form>
+            <label for="name">Name: </label><input class="userloginfield" type="text" name="name" placeholder="User name"> <br>
+            <label for="password">Password: </label><input class="userloginfield type="password" name="password"> <br>
+            <input type="submit" value="Login" id="loginbutton">
+            </form>
+        </div>
     </div>
-    <div id="output">
-        Stuff going on here.<br>
+    {{!-- <button id="getLocationOnce">Log current location</button>
+    <button id="toggleLocationWatch">Start location watch</button>
+    <button id="showMap">Show map</button>
+    <button id="clearMap">Clear map</button> <br> --}}
+    <div id="mapOutput">
+    </div>
+    <div id="topPane">
+        Lorem ipsum dolor sit amet.
     </div>
     <script src="js/main.js"></script>
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
 </body>
 </html>
 
