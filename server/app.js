@@ -56,8 +56,17 @@ const userSchema = new Schema({
         type: String,
         required: [true, "Can't do without a password!"]
     },
-    upcoming: {
+    role: {
+        type: String,
+        enum: ['user', 'superuser', 'admin'],
+        required: [true, 'User / superuser / admin?']
+    },
+    level: {
         type: Number,
+        required: [true, 'What level (1-99)?']
+    },
+    upcoming: {
+        type: Array,
         required: false
     },
     history: {
@@ -65,6 +74,10 @@ const userSchema = new Schema({
         required: false
     },
     favourites: {
+        type: Array,
+        required: false
+    },
+    created: {
         type: Array,
         required: false
     },
@@ -78,6 +91,10 @@ const eventSchema = new Schema({
     eventType: {
         type: String,
         required: [true, 'What type of event is this?']
+    },
+    owner: {
+        type: Number,
+        required: [true, 'Who owns this?']
     },
     origin: {
         type: Object,
@@ -136,10 +153,11 @@ let userModel = mongoose.model('users', userSchema);
 eventSchema.plugin(autoIncrement.plugin, 'events');
 let eventModel = mongoose.model('events', eventSchema);
 
-async function dbCreateRoute(route) {
+async function dbCreateRoute(userid, route) {
     try {
         let newRoute = new eventModel({
             eventType: 'run',
+            owner: userid,
             origin: route.origin,
             details: {
                 destination: route.destination,
@@ -169,16 +187,16 @@ async function dbFindEventsNearLatLng(type, lat, lng, threshold) {
 
 
 async function dbFindUserByName(name) {
-    let result = await userModel.findOne({ "name": name }, 'name email password');
+    let result = await userModel.findOne({ "name": name });
     return result;
 };
 
 async function dbFindUserByEmail(email) {
-    let result = await userModel.findOne({ "email": email }, 'name email password');
+    let result = await userModel.findOne({ "email": email });
     return result;
 }
 
-async function dbCreateUser(user) {
+async function dbCreateUser(user, role = 'user', level = 1) {
     // if it does exist, an update should be triggered instead of a new user saved
     try {
         // if (!dbUserInputValidate(user)) { throw new Error('Invalid user input') };
@@ -186,10 +204,12 @@ async function dbCreateUser(user) {
         let newUser = new userModel({
             name: user.name,
             email: user.email,
-            password: hashedPassword
+            password: hashedPassword,
+            role: role,
+            level: level
         });
         let result = await newUser.save();
-        return true;
+        return result;
     } catch (error) {
         console.log(error);
         return error;
@@ -204,14 +224,16 @@ async function run() {
     // await dbCreateUser({
     //     name: 'CK',
     //     email: 'ckk912@gmail.com',
-    //     password: '12345'
+    //     password: '12345',
+    //     role: 'admin',
+    //     level: 99
     // })
-    let result = await dbFindUserByName('CK');
-    console.log(result);
-    let comparo = await bcrypt.compare('12345', result.password);
-    console.log(comparo);
+    // let result = await dbFindUserByName('CK');
+    // console.log(result);
+    // let comparo = await bcrypt.compare('12345', result.password);
+    // console.log(comparo);
 }
-run();
+// run();
 
 async function dbUpdateUser(id, newUserData) {
     // attempt to update the info of a SINGLE record to avoid accidentally changing all records
@@ -255,6 +277,7 @@ app.set('view engine', 'handlebars');
 app.use(bodyParser.urlencoded({ extended: true }));
 // For application/json
 app.use(bodyParser.json())
+app.use(cookieParser())
 app.use(forceSSL);
 
 app.use(express.static('../client'));
@@ -269,12 +292,118 @@ function postRoot(request, response) {
     response.send(testRoute);
 };
 
-function userlogin(request, response) {
-    // get the user to login here. For now, we just do a database lookup to see if the user password matches, then store the user in the database.
+async function getEventsFromArray(arr) {
+    let result = [];
+    let tmp = null;
+    for (let i = 0; i < arr.length; i++) {
+        tmp = await eventModel.find({"_id": arr[i]});
+        result.push(tmp);
+    }
+    return result;
+};
+
+async function getUserFavourites(id) {
+    let result = await userModel.find({"_id": id}, 'favourites');
+    return result[0].favourites;
+};
+
+async function getUserUpcoming(id) {
+    let result = await userModel.find({"_id": id}, 'upcoming');
+    return result[0].upcoming;
+};
+
+async function getUserHistory(id) {
+    let result = await userModel.find({"_id": id}, 'history');
+    return result[0].history;
+};
+
+async function getUserCreated(id) {
+    let result = await userModel.find({"_id": id}, 'created');
+    return result[0].created;
+};
+
+async function insertFavouriteRouteForUser(userID, routeID) {
+    await userModel.update({"_id": userID}, {$push: {favourites: routeID}});
+};
+
+async function insertUpcomingRouteForUser(userID, routeID) {
+    await userModel.update({"_id": userID}, {$push: {upcoming: routeID}});
+};
+
+async function insertCreatedRouteForUser(userID, routeID) {
+    await userModel.update({"_id": userID}, {$push: {created: routeID}});
+};
+
+async function insertHistoryRouteForUser(userID, routeID) {
+    await userModel.update({"_id": userID}, {$push: {history: routeID}});
+};
+
+async function userregister(request, response) {
+    // get the db function to submit a user creation request here. pass the user's details into the database.
+    if (request.body.password !== request.body.confirmedpassword) {
+        response.send({
+            passerror: 'Passwords do not match'
+        });
+        return;
+    } else {
+        let result = await dbCreateUser(request.body);
+        result.password = undefined;
+        result = JSON.parse(JSON.stringify(result));
+        let toSend = {
+            success: true,
+            result: result
+        };
+        response.send(toSend);
+    };
+};
+
+async function userfindRoutesFromId() {
+
 }
+
+async function getKey() {
+
+}
+
+async function userlogin(request, response) {
+    // get the user to login here. For now, we just do a database lookup to see if the user password matches, then store the user in the database.
+    let userInput = request.body;
+    let result = await dbFindUserByName(userInput.name);
+    if (!result) {
+        response.send({
+            result: 'User not found'
+        });
+        return;
+    };
+    let check = bcrypt.compareSync(userInput.password, result.password);
+    if (check) {
+        result.password = undefined;
+        result = JSON.parse(JSON.stringify(result));
+        result.success = true;
+        if (result['created'].length > 0) {
+            result['created'] = await getEventsFromArray(result['created']);
+        };
+        if (result['favourites'].length > 0) {
+            result['favourites'] = await getEventsFromArray(result['favourites']);
+        };
+        if (result['history'].length > 0) {
+            result['history'] = await getEventsFromArray(result['history']);
+        };
+        if (result['upcoming'].length > 0) {
+            result['upcoming'] = await getEventsFromArray(result['upcoming']);
+        };
+        response.cookie('test', 'yo');
+        response.send(result);
+    } else {
+        response.send({
+            result: 'Invalid password'
+        });
+    };
+};
 
 function userlogout(request, response) {
     // This request is going to come in via XHR. Clear the user from the logged in database here and send the appropriate JSON response {logout: true} and let the UI handle it.
+    response.clearCookie('test');
 }
 
 function usergetprofile(request, response) {
@@ -291,6 +420,7 @@ function userLocationSubmit(request, response) {
     // Return a JSON object as a response - {marker: [{lat, lng}, {lat, lng}, ... ], nearby: [route, route, ... ]}
 }
 
+
 function routeSubmit(request, response) {
     // DECIDE: How is the server going to handle the clicks on the map here? DB call? Timestamp the thing!!!!
 }
@@ -306,6 +436,8 @@ function routeDelete(request, response) {
 
 app.get('/', getRoot);
 app.post('/user/login', userlogin);
+app.post('/user/logout', userlogout);
+app.post('/user/register', userregister);
 app.post('/location', userLocationSubmit);
 app.post('/', postRoot);
 

@@ -1,110 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1"
+        crossorigin="anonymous">
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
     <script src="js/js.cookie.js"></script>
     <title>Run 2 Testing</title>
+    <script>
+        FontAwesomeConfig = { searchPseudoElements: true };
+    </script>
+    <script defer src="js/fontawesome-all.js"></script>
     <style>
-        #mapOutput {
-            flex:auto;
-            order:2;
-            {{!-- top:60px; --}}
-            {{!-- left:0;
-            bottom:0; --}}
-            width: 100%;
-            z-index: 1;
-        }
-
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow:hidden;
+            overflow: hidden;
         }
 
         body {
             display: flex;
-            flex-direction:column;
+            flex-direction: column;
+        }
+
+        header {
+            order: 1;
+            height: 56px;
+            z-index: 3;
+            background-color: rgb(8, 93, 0);
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 2px 2px 5px #666;
+            padding: 4px 1em;
+        }
+
+        .headerContent {
+            height: 100%;
+            width: 100%;
+        }
+
+        .title {
+            display: inline-block;
+            height: 100%;
+            line-height: 56px;
+        }
+
+        nav {
+            display: inline-block;
+            float: right;
+            height: 100%;
+        }
+
+        nav>ul {
+            list-style: none;
+        }
+
+        nav>ul>li {
+            display: inline-block;
+            width: 1.5em;
+            height: 75%;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .contentContainer {
+            flex: auto;
+            order: 2;
+            bottom: 0;
+            width: 100%;
+            z-index: 1;
+            background-color: bisque;
+        }
+
+        #mapOutput {
+            width: 100%;
+            height: calc(100% - 56px);
+            position: absolute;
+            background-color: azure;
         }
 
         .displaypane {
             position: fixed;
-            top: 95%;
+            top: 97%;
             left: 10%;
             width: 80%;
             border-radius: 8px;
-            background-color: white;
-            color: black;
             transition: 0.5s;
             z-index: 10;
+            box-shadow: 2px 4px 2px #666;
         }
 
         .displaypane-title {
-            z-index: 10;
             background-color: brown;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
             color: white;
             font-weight: 700;
-            height: 3em;
-            line-height: 3em;
+            height: 2em;
+            line-height: 2em;
             font-size: 1.5em;
             padding-left: 1em;
             padding-right: 1em;
+            visibility: visible;
         }
 
         .displaypane-content {
-            z-index: 10;
-            font-size: 1.5em;
-            line-height: 2em;
+            background-color: white;
+            color: black;
+            font-size: 1.25em;
+            line-height: 1.5em;
             padding: 1em;
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
-        }
-
-        label, input {
-            line-height: 1.25em;
-            font-size: 1em;
+            visibility: visible;
         }
 
         .userloginfield {
             width: 80%;
         }
 
-        #topPane {
-            order:1;
-            height: 60px;
-            background-color: blue;
+        #formLogin,
+        #formRegister,
+        #info {
+            display: none;
+        }
+
+        #btn-logout {
+            display: none;
+        }
+
+        #btn-about::before {
+            display: none;
+            font-family: 'Font Awesome 5 Solid';
+            content: '\f05a';
+        }
+
+        #btn-login::before {
+            display: none;
+            font-family: 'Font Awesome 5 Solid';
+            content: '\f2f6';
+        }
+
+        #btn-register::before {
+            display: none;
+            font-family: 'Font Awesome 5 Solid';
+            content: '\f2bd';
+        }
+
+        #btn-create::before {
+            display: none;
+            font-family: 'Font Awesome 5 Solid';
+            content: '\f055';
+        }
+
+        #btn-logout::before {
+            display: none;
+            font-family: 'Font Awesome 5 Solid';
+            content: '\f2f5';
+        }
+
+        @media (min-width: 768px) {
+            .contentContainer {
+                display: flex;
+            }
+
+            #mapOutput {
+                order: 1;
+                flex: auto;
+                position: static;
+            }
+
+            .displaypane {
+                position: static;
+                display: flex;
+                background-color: brown;
+                order: 2;
+                flex-direction: column;
+                width: 10px;
+                left: initial;
+                border-radius: 0;
+            }
+
+            .displaypane * {
+                border-radius: 0;
+            }
+
+            .displaypane-title {
+                flex: none;
+                visibility: hidden;
+            }
+
+            nav>ul>li {
+                width: 120px;
+                height: 75%;
+            }
+
+            .displaypane-content {
+                flex: auto;
+                visibility: hidden;
+            }
+
+            #btn-about::before {
+                display: inline-block;
+                font-family: initial;
+                content: 'About';
+            }
+
+            #btn-login::before {
+                display: inline-block;
+                font-family: initial;
+                content: 'Login';
+            }
+
+            #btn-register::before {
+                display: inline-block;
+                font-family: initial;
+                content: 'Register';
+            }
+
+            #btn-create::before {
+                display: inline-block;
+                font-family: initial;
+                content: 'Create Run';
+            }
+
+            #btn-logout::before {
+                display: inline-block;
+                font-family: initial;
+                content: 'Logout';
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="displaypane">
-        <div class="displaypane-title">
-            Login
+    <header>
+        <div class="headerContent">
+            <div class="title">
+                Run2
+            </div>
+            <nav>
+                <ul>
+                    <li id="btn-about">
+                        {{!--
+                        <i class="fas fa-info-circle"></i> --}}
+                    </li>
+                    <li id="btn-login">
+                        {{!--
+                        <i class="fas fa-sign-in-alt"></i> --}}
+                    </li>
+                    <li id="btn-register">
+                        {{!--
+                        <i class="fas fa-user-circle"></i> --}}
+                    </li>
+                    <li id="btn-create">
+                        {{!--
+                        <i class="fas fa-plus-circle"></i> --}}
+                    </li>
+                    <li id="btn-logout">
+                        {{!--
+                        <i class="fas fa-sign-out-alt"></i> --}}
+                    </li>
+                </ul>
+            </nav>
         </div>
-        <div class="displaypane-content">
-            <form>
-            <label for="name">Name: </label><input class="userloginfield" type="text" name="name" placeholder="User name"> <br>
-            <label for="password">Password: </label><input class="userloginfield type="password" name="password"> <br>
-            <input type="submit" value="Login" id="loginbutton">
-            </form>
+    </header>
+    <div class="contentContainer">
+        <div id="mapOutput">
         </div>
-    </div>
-    {{!-- <button id="getLocationOnce">Log current location</button>
-    <button id="toggleLocationWatch">Start location watch</button>
-    <button id="showMap">Show map</button>
-    <button id="clearMap">Clear map</button> <br> --}}
-    <div id="mapOutput">
-    </div>
-    <div id="topPane">
-        Lorem ipsum dolor sit amet.
+        <div class="displaypane">
+            <div class="displaypane-title">
+            </div>
+            <div class="displaypane-content">
+                <div id="info">
+                    Lorem, ipsum dolor sit amet consectetur adipisicing elit. Nulla, expedita.
+                </div>
+                <form id="formLogin">
+                    <label for="name">Name: </label>
+                    <input class="userloginfield" id="loginname" type="text" name="name" placeholder="User name">
+                    <span id="loginnameerr"></span>
+                    <br>
+                    <label for="password">Password: </label>
+                    <input class="userloginfield" id="loginpass" type="password" name="password">
+                    <span id="loginpasserr"></span>
+                    <br>
+                    <input type="submit" value="Login" id="loginbutton">
+                </form>
+                <form id="formRegister">
+                    <label for="name">Name: </label>
+                    <input class="userloginfield" id="regname" type="text" name="name" placeholder="User name">
+                    <span id="regnameerror"></span>
+                    <br>
+                    <label for="name">Email: </label>
+                    <input class="userloginfield" id="regemail" type="email" name="email" placeholder="Email address">
+                    <span id="regemailerror"></span>
+                    <br>
+                    <label for="password">Password: </label>
+                    <input class="userloginfield" id="regpass" type="password" name="password">
+                    <span id="regpasserror"></span>
+                    <br>
+                    <label for="confirmpassword">Confirm Password: </label>
+                    <input class="userloginfield" id="regconfirmpass" type="password" name="confirmpassword">
+                    <br>
+                    <input type="submit" value="Register" id="registerbutton">
+                </form>
+            </div>
+        </div>
     </div>
     <script src="js/main.js"></script>
 </body>
-</html>
 
+</html>
