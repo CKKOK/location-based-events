@@ -18,6 +18,7 @@ const googleMapsClient = require('@google/maps').createClient({
 
 function calculateRouteDistance(route) {
     return new Promise(function(resolve, reject){
+        console.log(route);
         googleMapsClient.directions({
             origin: route.origin,
             destination: route.destination,
@@ -66,19 +67,26 @@ const userSchema = new Schema({
         required: [true, 'What level (1-99)?']
     },
     upcoming: {
-        type: Array,
+        type: [Number],
         required: false
     },
     history: {
-        type: Array,
-        required: false
+        eventId: {
+            type: Number
+        },
+        startdatetime: {
+            type: Date
+        },
+        enddatetime: {
+            type: Date
+        }
     },
     favourites: {
-        type: Array,
+        type: [Number],
         required: false
     },
     created: {
-        type: Array,
+        type: [Number],
         required: false
     },
     averagePace: {
@@ -92,7 +100,7 @@ const eventSchema = new Schema({
         type: String,
         required: [true, 'What type of event is this?']
     },
-    owner: {
+    creator: {
         type: Number,
         required: [true, 'Who owns this?']
     },
@@ -103,6 +111,27 @@ const eventSchema = new Schema({
     details: {
         type: Object,
         required: [true, 'Details needed!']
+    }
+})
+
+const upcomingSchema = new Schema({
+    eventId: {
+        type: Number,
+        required: [true, 'Which event id?']
+    },
+    organizer: {
+        type: Number,
+        required: [true, 'Who is organizing this?']
+    },
+    attendees: {
+        type: [Number],
+        required: false // For the ids of the users joining this thing
+    },
+    startdatetime: {
+        type: Date
+    },
+    expirydatetime: {
+        type: Date
     }
 })
 
@@ -147,17 +176,19 @@ async function newRouteFromWaypointList(route) {
     return result;
 }
 
-
 userSchema.plugin(autoIncrement.plugin, 'users');
-let userModel = mongoose.model('users', userSchema);
 eventSchema.plugin(autoIncrement.plugin, 'events');
-let eventModel = mongoose.model('events', eventSchema);
+upcomingSchema.plugin(autoIncrement.plugin, 'upcoming');
 
-async function dbCreateRoute(userid, route) {
+const userModel = mongoose.model('users', userSchema);
+const eventModel = mongoose.model('events', eventSchema);
+const upcomingModel = mongoose.model('upcoming', upcomingSchema);
+
+async function dbCreateRunningRoute(userid, route) {
     try {
         let newRoute = new eventModel({
             eventType: 'run',
-            owner: userid,
+            creator: userid,
             origin: route.origin,
             details: {
                 destination: route.destination,
@@ -205,8 +236,8 @@ async function dbCreateUser(user, role = 'user', level = 1) {
             name: user.name,
             email: user.email,
             password: hashedPassword,
-            role: role,
-            level: level
+            role: user.role || 'user',
+            level: user.level || 1
         });
         let result = await newUser.save();
         return result;
@@ -216,24 +247,35 @@ async function dbCreateUser(user, role = 'user', level = 1) {
     };
 };
 
-async function run() {
-    // let route = await newRouteFromWaypointList(testRoute);
-    // await dbCreateRoute(route);
-    // let results = await dbFindEventsNearLatLng("run", 1.306, 103.829, 0.1);
-    // console.log(results);
-    // await dbCreateUser({
-    //     name: 'CK',
-    //     email: 'ckk912@gmail.com',
-    //     password: '12345',
-    //     role: 'admin',
-    //     level: 99
-    // })
+async function someTestData() {
+    let user = await dbCreateUser({
+        name: 'CK',
+        email: 'ckk912@gmail.com',
+        password: '12345',
+        role: 'admin',
+        level: 99
+    });
+
+    let route = await newRouteFromWaypointList(testRoute);
+
+    let createdRoute = await dbCreateRunningRoute(user._id, route);
+
+    let results = await dbFindEventsNearLatLng("run", 1.306, 103.829, 0.1);
+    
     // let result = await dbFindUserByName('CK');
     // console.log(result);
     // let comparo = await bcrypt.compare('12345', result.password);
     // console.log(comparo);
 }
-// run();
+someTestData();
+
+async function userJoinUpcomingEvent(userID, eventID) {
+    // await userModel.update({"_id": userID}, {$push: {favourites: eventID}});
+}
+
+async function createUpcomingEvent(userID, eventID, time) {
+    // await userModel.update({"_id": userID}, {$push: {favourites: eventID}});
+}
 
 async function dbUpdateUser(id, newUserData) {
     // attempt to update the info of a SINGLE record to avoid accidentally changing all records
