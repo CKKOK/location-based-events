@@ -1,17 +1,30 @@
-var btnAbout = document.querySelector('#btn-about');
-var btnLogin = document.querySelector('#btn-login');
-var btnLogout = document.querySelector('#btn-logout');
-var btnRegister = document.querySelector('#btn-register');
-var btnCreate = document.querySelector('#btn-create');
+var iconRun = 'img/runnerIcon.png';
+var iconMsg = 'img/comment-alt.svg';
 
-var topPane = document.querySelector("#topPane");
-var mapOutput = document.querySelector("#mapOutput");
+// var btnAbout = function(){(window.innerWidth < 768) ? return document.querySelector('#navMobile > .btn-about') : return document.querySelector('#navDesktop > .btn-about')};
+// var btnLogin = function(){(window.innerWidth < 768) ? return document.querySelector('#navMobile > .btn-login') : return document.querySelector('#navDesktop > .btn-login')};
+// var btnLogout = function(){(window.innerWidth < 768) ? return document.querySelector('#navMobile > .btn-logout') : return document.querySelector('#navDesktop > .btn-logout')};
+// var btnRegister = function(){(window.innerWidth < 768) ? return document.querySelector('#navMobile > .btn-register') : return document.querySelector('#navDesktop > .btn-register')};
+// var btnCreate = function(){(window.innerWidth < 768) ? return document.querySelector('#navMobile > .btn-create') : return document.querySelector('#navDesktop > .btn-create')};
+
+
+// var btnLogin = document.querySelector('#btn-login');
+// var btnLogout = document.querySelector('#btn-logout');
+// var btnRegister = document.querySelector('#btn-register');
+// var btnCreate = document.querySelector('#btn-create');
+// var btnChatSend = document.querySelector('#btn-chatSend');
+
+var topPane = document.querySelector(".topPane");
+
 var displayPane = document.querySelector(".displaypane");
 var displayPaneTitle = document.querySelector('.displaypane-title');
 var displayPaneContent = document.querySelector('.displaypane-content');
 var displayPaneInfo = document.querySelector('#info');
 var formLogin = document.querySelector('#formLogin');
 var formRegister = document.querySelector('#formRegister');
+var chatPanel = document.querySelector('.chat');
+
+var mapOutput = document.querySelector("#mapOutput");
 var locationWatcher = null;
 var mapInitOptions = {
   center: { lat: 1.3036158, lng: 103.8274339 },
@@ -21,13 +34,14 @@ var mapInitOptions = {
 var map = null,
   infoWindow = null;
 var geolocationOptions = {
-  enableHighAccuracy: true,
-  maximumAge: 600000
+  enableHighAccuracy: true
 };
 var directionsService, directionsDisplay;
 var lastMarker = 0;
 var refPoint = null;
 var markers = [];
+var nearby = [];
+var nearbypointer = [];
 
 // Credit to stackoverflow and MDN for shortcutting this painful implementation of client-side cookie-parsing. To be swapped out for the js.cookies library before deployment.
 var Cookie = {
@@ -86,7 +100,6 @@ function setMapPosition(lat, long) {
   map.setCenter({lat: lat, lng: long});
 }
 
-
 function setMarkerAtPosition(lat, lng, iconImgURL, routeDetails) {
   lastMarker++;
   var markerTitle = lastMarker.toString();
@@ -118,14 +131,34 @@ function showPosition(location) {
 
 function getLocationOnce() {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      showPosition,
+      navigator.geolocation.getCurrentPosition(
+      eventUpdateHandler,
       geolocationErrorHandler,
       geolocationOptions
     );
   } else {
     log("This browser does not support geolocation.");
   }
+}
+
+function eventUpdateHandler(location) {
+  var time = new Date(location.timestamp).toLocaleString();
+  var lat = location.coords.latitude;
+  var lng = location.coords.longitude;
+  var obj = {time: time, lat: lat, lng: lng};
+  var tmp = null;
+  JSONSend(obj, '/api/getnearbyupcoming', 'POST', function(data) {
+    data.forEach(function(point){
+      if (nearbypointer.indexOf(point._id) === -1) {
+        tmp = point.details.waypoints;
+        tmp.unshift(point.origin);
+        tmp.push(point.details.destination);
+        setMarkerAtPosition(point.origin.lat, point.origin.lng, iconRun, tmp);
+        nearbypointer.push(point._id);
+        nearby.push(point);
+      };
+    })
+  });
 }
 
 function watchLocationToggle() {
@@ -136,14 +169,12 @@ function watchLocationToggle() {
         geolocationErrorHandler,
         geolocationOptions
       );
-      // btnToggleLocationWatch.textContent = "Stop Location Watch";
     } else {
       log("This browser does not support geolocation.");
     }
   } else {
     navigator.geolocation.clearWatch(locationWatcher);
     locationWatcher = null;
-    // btnToggleLocationWatch.textContent = "Start Location Watch";
   }
 }
 
@@ -201,7 +232,7 @@ function displayRoute(route) {
   );
 }
 
-function showInfo(title, text, flyout = false) {
+function showInfo(title, text, flyout = true) {
   displayPaneTitle.textContent = (typeof(title) === 'string') ? title : 'About';
   displayPaneInfo.textContent = text || 'Lorem stuffs';
   formLogin.style.display = 'none';
@@ -337,6 +368,7 @@ function showDisplayPane() {
   displayPaneContent.style.visibility = 'visible';
   if (window.innerWidth < 768) {
     displayPane.style.top = '10%';
+    displayPane.style.width = '80%';
   } else {
     displayPane.style.width = '250px';
   };
@@ -346,7 +378,8 @@ function hideDisplayPane() {
   displayPaneTitle.style.visibility = 'hidden';
   displayPaneContent.style.visibility = 'hidden';
   if (window.innerWidth < 768) {
-    displayPane.style.top = '95%';
+    displayPane.style.top = '97%';
+    displayPane.style.width = '80%';
   } else {
     displayPane.style.width = '10px';
   };
@@ -383,9 +416,10 @@ function submitLoginForm(e) {
   };
   JSONSend(loginInfo, '/user/login', 'POST', function(data) {
     if (data.success === true) {
-      btnLogin.style.display = 'none';
-      btnRegister.style.display = 'none';
-      btnLogout.style.display = 'inline-block';
+      // btnLogin.style.display = 'none';
+      // btnRegister.style.display = 'none';
+      // btnLogout.style.display = 'inline-block';
+      showInfo('Welcome', 'asdf', true);
     } else {
       console.log('nope');
     }
@@ -413,6 +447,8 @@ window.onload = function() {
     };
   });
 
+  setInterval(getLocationOnce, 3000);
+
   google.maps.event.addListener(map, "click", function(e) {
     var latLng = e.latLng;
     var lat = latLng.lat();
@@ -431,10 +467,11 @@ window.onload = function() {
   });
 
   showInfo('Run2', 'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatum, aspernatur?', false);
-  btnAbout.addEventListener('click', showInfo);
-  btnLogin.addEventListener('click', showLoginForm);
-  btnRegister.addEventListener('click', showRegistrationForm);
+  // btnAbout.addEventListener('click', showInfo);
+  // btnLogin.addEventListener('click', showLoginForm);
+  // btnRegister.addEventListener('click', showRegistrationForm);
 
   document.querySelector('#loginbutton').addEventListener('click', submitLoginForm);
   document.querySelector('#registerbutton').addEventListener('click', submitRegistrationForm);
+
 };

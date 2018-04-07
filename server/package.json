@@ -2,8 +2,12 @@
   "name": "run2",
   "version": "1.0.0",
   "description": "Social Running",
+  "engines": {
+    "node": "^8.6.0"
+  },
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "nodemon"
   },
   "author": "CK",
