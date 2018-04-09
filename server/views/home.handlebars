@@ -9,6 +9,19 @@
         crossorigin="anonymous">
     <link rel="stylesheet" href="css/main.css">
     <title>Run 2 Testing</title>
+    {{#if loggedIn}}
+    <script>
+        var __loggedIn = true;
+    </script>
+    {{/if}}
+    {{#if admin}}
+    <style>
+        header {
+            background-color:black;
+            color: white;
+        }
+    </style>
+    {{/if}}
 </head>
 
 <body>
@@ -31,11 +44,23 @@
                         <li class="btn-register">
                             <i class="fas fa-user"></i>
                         </li>
-                        <li class="btn-create">
-                            <i class="fas fa-plus-circle"></i>
+                        <li class="btn-profile">
+                            <i class="fas fa-user"></i>
                         </li>
+                        <li class="btn-creationMode">
+                            @
+                        </li>
+                        <li class="btn-clear">
+                            C
+                        </li>
+                        <li class="btn-finish">
+                            E
+                        </li>
+                        {{!-- User Profile --}}
+                        {{!-- Show Upcoming Events --}}
+                        {{!-- Show Messages --}}
                         <li class="btn-logout">
-                            <i class="fas fa-sign-out-alt"></i>
+                            <a href="/user/logout"><i class="fas fa-sign-out-alt"></i></a>
                         </li>
                     </ul>
                     <ul class="navDesktop">
@@ -48,11 +73,23 @@
                         <li class="btn-register">
                             Register
                         </li>
-                        <li class="btn-create">
-                            Create
+                        <li class="btn-profile">
+                            Profile
                         </li>
+                        <li class="btn-creationMode">
+                            @Runs
+                        </li>
+                        <li class="btn-clear">
+                            Clear Map
+                        </li>
+                        <li class="btn-finish">
+                            End
+                        </li>
+                        {{!-- User Profile --}}
+                        {{!-- Show Upcoming Events --}}
+                        {{!-- Show Messages --}}
                         <li class="btn-logout">
-                            Logout
+                            <a href="/user/logout">Logout</a>
                         </li>
                     </ul>
                 </nav>
@@ -65,39 +102,13 @@
                 <div class="displaypane-title">
                 </div>
                 <div class="displaypane-content">
-                    <div id="info">
-                        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Nulla, expedita.
+                    <div id="infoPanel">
+                        Find, join, or create events nearby with a simple tap!
                     </div>
-                    <form id="formLogin">
-                        <label for="name">Name: </label>
-                        <input class="userloginfield" id="loginname" type="text" name="name" placeholder="User name">
-                        <span id="loginnameerror"></span>
-                        <br>
-                        <label for="password">Password: </label>
-                        <input class="userloginfield" id="loginpass" type="password" name="password">
-                        <span id="loginpasserror"></span>
-                        <br>
-                        <input type="submit" value="Login" id="loginbutton">
+                    <form id="formPanel">
+                        
                     </form>
-                    <form id="formRegister">
-                        <label for="name">Name: </label>
-                        <input class="userloginfield" id="regname" type="text" name="name" placeholder="User name">
-                        <span id="regnameerror"></span>
-                        <br>
-                        <label for="name">Email: </label>
-                        <input class="userloginfield" id="regemail" type="email" name="email" placeholder="Email address">
-                        <span id="regemailerror"></span>
-                        <br>
-                        <label for="password">Password: </label>
-                        <input class="userloginfield" id="regpass" type="password" name="password">
-                        <span id="regpasserror"></span>
-                        <br>
-                        <label for="confirmpassword">Confirm Password: </label>
-                        <input class="userloginfield" id="regconfirmpass" type="password" name="confirmpassword">
-                        <br>
-                        <input type="submit" value="Register" id="registerbutton">
-                    </form>
-                    <div id="chat">
+                    <div id="chatPanel">
                         <div id="chatHistory">
                             Lorem ipsum dolor sit amet consectetur adipisicing elit. Minima optio totam dolorum debitis rem sit distinctio modi exercitationem?
                             Laudantium libero quas ab tenetur in, sit adipisci error quidem tempore nostrum, neque facilis?
@@ -111,9 +122,10 @@
             </div>
         </div>
     </div>
-    <script src="js/js.cookie.js"></script>
+    <script src="js/fontawesome-all.js"></script>
     <script src="js/main.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeK4QLXB-YzLK6PwKHr5y4NPAquQXPBrU&callback=initMap"></script>
+    <script src="js/markerwithlabel.js"></script>
 </body>
 
 </html>

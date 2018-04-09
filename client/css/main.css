@@ -10,6 +10,10 @@ body {
 	overflow: hidden;
 }
 
+.clip-circle {
+	clip-path: circle(60px at center);
+}
+
 .pageContainer {
 	display: flex;
 	flex-direction: column;
@@ -21,10 +25,10 @@ header {
 	height: 52px;
 	z-index: 3;
 	flex-grow: 0;
-	background-color: rgb(8, 93, 0);
+	background-color: white;
 	font-size: 20px;
 	font-weight: 800;
-	color: white;
+	color: black;
 	box-shadow: 2px 2px 5px #666;
 	padding: 4px 0.5em;
 }
@@ -78,13 +82,13 @@ nav > ul {
 nav > ul > li {
     display: inline-block;
     line-height: 44px;
-	width: 15%;
+	width: 10%;
 	height: 100%;
 	text-align: center;
 	cursor: pointer;
 }
 
-.btn-logout {
+.btn-logout, .btn-profile, .btn-creationMode, .btn-clear, .btn-finish {
     display: none;
 }
 
@@ -110,7 +114,7 @@ nav > ul > li {
     display: block;
     background-color: brown;
     width: 80%;
-    top: 90%;
+    top: 96%;
 	left: 10%;
 	border-radius: 8px;
     transition: 0.35s;
@@ -145,10 +149,9 @@ nav > ul > li {
 	width: 80%;
 }
 
-#formLogin,
-#formRegister,
-#info,
-#chat {
+#formPanel,
+#infoPanel,
+#chatPanel {
 	display: none;
 }
 
@@ -159,6 +162,15 @@ nav > ul > li {
 span[id$='error'] {
 	color:red;
 	font-size:0.8em;
+}
+
+[class^='profile'] {
+	text-align:center;
+}
+
+.profilename {
+	font-size: 1.5em;
+	font-weight: 650;
 }
 
 @media (min-width: 700px) {
@@ -181,6 +193,10 @@ span[id$='error'] {
 	nav > ul > li {
 		width: 120px;
 		height: 75%;
+	}
+
+	a {
+		text-decoration: none;
 	}
 
 	.navDesktop {
