@@ -9,11 +9,6 @@
         crossorigin="anonymous">
     <link rel="stylesheet" href="css/main.css">
     <title>Run 2 Testing</title>
-    {{#if loggedIn}}
-    <script>
-        var __loggedIn = true;
-    </script>
-    {{/if}}
     {{#if admin}}
     <style>
         header {
@@ -56,9 +51,6 @@
                         <li class="btn-finish">
                             E
                         </li>
-                        {{!-- User Profile --}}
-                        {{!-- Show Upcoming Events --}}
-                        {{!-- Show Messages --}}
                         <li class="btn-logout">
                             <a href="/user/logout"><i class="fas fa-sign-out-alt"></i></a>
                         </li>
@@ -85,9 +77,6 @@
                         <li class="btn-finish">
                             End
                         </li>
-                        {{!-- User Profile --}}
-                        {{!-- Show Upcoming Events --}}
-                        {{!-- Show Messages --}}
                         <li class="btn-logout">
                             <a href="/user/logout">Logout</a>
                         </li>
@@ -106,7 +95,6 @@
                         Find, join, or create events nearby with a simple tap!
                     </div>
                     <form id="formPanel">
-                        
                     </form>
                     <div id="chatPanel">
                         <div id="chatHistory">

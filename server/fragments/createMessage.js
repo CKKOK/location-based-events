@@ -1,6 +1,6 @@
 function messageSubmit(e) {
     e.preventDefault();
-    
+
     var title = document.querySelector('#messageTitle').value;
     
     var messagebody = document.querySelector('#messageBody').value;
@@ -12,8 +12,12 @@ function messageSubmit(e) {
     };
 
     function dataHandler(data) {
-        
-    }
+        if (data.success === true) {
+            
+        } else {
+
+        };
+    };
 
     JSONSend(obj, '/api/createmessage', 'POST', dataHandler);
 }

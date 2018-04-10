@@ -9,7 +9,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
-// const MemcachedStore = require('connect-memcached')(session);
+const MemcachedStore = require('connect-memcached')(session);
 const bcrypt = require('bcrypt');
 const bcryptSalt = 7;
 
@@ -425,7 +425,6 @@ async function dbUserUpdate(id, newUserData) {
 		return error;
 	}
 }
-// dbUserUpdate(0, {password: '12345'});
 
 async function dbUserDelete(id) {
 	try {
@@ -552,8 +551,13 @@ app.use(
 	session({
 		secret: 'abcdefg',
 		resave: true,
-		saveUninitialized: false,
-		cookie: { secure: true }
+		cookie: {maxAge: 28800000},
+		saveUninitialized: true,
+		cookie: { expires: false, secure: true },
+		store: new MemcachedStore({
+			hosts: ['127.0.0.1:11211'],
+			secret: 'zxcvb'
+		}),
 	})
 );
 
@@ -561,15 +565,16 @@ app.use(express.static('../client'));
 
 async function getRoot(request, response) {
 	let context = {};
-	if (request.session.cookie.userid) {
-		context['loggedIn'] = true;
+	if (request.session.hasOwnProperty('userid')) {
 		// also, check the user's role. an admin should have a black header.
-		let user = await dbUserFindById(parseInt(request.session.cookie.userid));
+		let user = await dbUserFindById(parseInt(request.session.userid));
 		if (user.role === 'admin') {
 			context['admin'] = true;
-		}
+		};
+		response.render('home', context);
+	} else {
+		response.render('home', context);
 	};
-	response.render('home', context);
 }
 
 function postRoot(request, response) {
@@ -672,9 +677,13 @@ async function usergetNearbyUpcoming(request, response) {
 		0.004
 	);
 	let tmp = null,
+		tmp2 = null,
 		tmpArr = [];
 	for (let i = 0; i < result.length; i++) {
 		tmp = await eventModel.findOne({ _id: result[i].eventID });
+		tmp = tmp.toJSON();
+		tmp2 = await dbUserFindById(tmp.creator);
+		tmp.creator = tmp2.name;
 		tmpArr.push(tmp);
 	}
 	response.send(tmpArr);
@@ -689,9 +698,14 @@ async function usergetNearbyMessages(request, response) {
 		0.004
 	);
 	let tmp = null,
+		tmp2 = null,
 		tmpArr = [];
 	for (let i = 0; i < result.length; i++) {
 		tmp = await eventModel.findOne({ _id: result[i].eventID });
+		tmp = tmp.toJSON();
+		tmp2 = await dbUserFindById(tmp.creator);
+		tmp.creator = tmp2.name;
+		tmp.details.time = tmp.details.time.toLocaleString();
 		tmpArr.push(tmp);
 	}
 	response.send(tmpArr);
@@ -716,7 +730,7 @@ async function routeDelete(request, response) {
 };
 
 async function messageCreate(request, response) {
-	if (request.sessionID && request.session.userid) {
+	if (request.sessionID && request.session.hasOwnProperty('userid')) {
 		let userid = request.session.userid;
 		let obj = request.body;
 		let title = obj.title;
@@ -724,7 +738,8 @@ async function messageCreate(request, response) {
 		let time = new Date();
 		let messagebody = obj.messagebody;
 		let result = await dbLocationMessageCreate(userid, title, time, messagebody, origin);
-		response.send({result: result});
+		await dbUpcomingEventsCreateFromEventID(userid, result._id, time);
+		response.send({success: true});
 	};
 };
 
@@ -812,6 +827,11 @@ async function getUpdateForm(request, response) {
 	response.send(JSON.stringify(result));
 }
 
+function getMessageCreateForm(request, response) {
+	let result = {form: createMessagePage, script: createMessageScript};
+	response.send(JSON.stringify(result));
+}
+
 app.get('/', getRoot);
 app.get('/loginForm', getLoginForm);
 app.get('/registrationForm', getRegistrationForm);
@@ -821,6 +841,7 @@ app.get('/user/logout', userlogout);
 app.post('/user/register', userregister);
 app.get('/user/profile', getUserProfile);
 app.put('/user/update', userupdate);
+app.get('/api/getmessagecreateform', getMessageCreateForm);
 app.post('/api/getuserupcoming', usergetUpcoming);
 app.post('/api/getusermessages', usergetMessages);
 app.post('/api/getnearbyupcoming', usergetNearbyUpcoming);

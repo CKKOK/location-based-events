@@ -473,6 +473,7 @@ function setEventMarkerAtPosition(lat, lng, type, title, iconImgURL, owner, deta
 	};
 
 	lastMarker++;
+	var icon = (type === 'run') ? runningMarkerIcon : messageMarkerIcon;
 	var markerTitle = title || lastMarker.toString();
 	var info = details || '';
 	var eventType = type || 'run';
@@ -482,7 +483,7 @@ function setEventMarkerAtPosition(lat, lng, type, title, iconImgURL, owner, deta
 		title: markerTitle,
 		routeTag: 'test',
 		type: eventType,
-		icon: runningMarkerIcon,
+		icon: icon,
 		details: info,
 		owner: owner,
 		animation: google.maps.Animation.DROP,
@@ -498,7 +499,7 @@ function setEventMarkerAtPosition(lat, lng, type, title, iconImgURL, owner, deta
 			displayRoute(this.details);
 		} else if (this.type === 'message' && this.details !== '') {
 			var tmpWindow = new google.maps.InfoWindow({
-				content: createInfoWindowContentForMessage(this.details.title, this.details.time, this.owner, this.details.messageBody)
+				content: createInfoWindowContentForMessage(this.details.title, this.details.details.time, this.details.creator, this.details.details.messageBody)
 			});
 			tmpWindow.open(map, this);
 		};
@@ -522,6 +523,7 @@ function createEventMarkerAtPosition(lat, lng, type, title, iconImgURL, owner, d
 	};
 
 	lastMarker++;
+	var icon = (type === 'run') ? runningMarkerIcon : messageMarkerIcon;
 	var markerTitle = title || lastMarker.toString();
 	var info = details || '';
 	var eventType = type || 'run';
@@ -532,7 +534,7 @@ function createEventMarkerAtPosition(lat, lng, type, title, iconImgURL, owner, d
 		title: markerTitle,
 		routeTag: 'test',
 		type: eventType,
-		icon: runningMarkerIcon,
+		icon: icon,
 		details: info,
 		owner: owner,
 		animation: google.maps.Animation.DROP,
@@ -543,15 +545,38 @@ function createEventMarkerAtPosition(lat, lng, type, title, iconImgURL, owner, d
 	var node = currentCreatedRoute.addNode(marker);
 	marker.node = node;
 
+	if (eventType === 'run') {
+		// do stuff with the intermediate node
+	} else if (eventType === 'message') {
+		// render the create message form in an infowindow	
+		function handlerFunc(data) {
+			console.log('handlerFunc called');
+			var createMessageForm = '<div id="createMessageForm">' + data.form + '</div>';
+			var scriptElement = document.createElement('script');
+			scriptElement.innerHTML = data.script;
+			var tmpWindow = new google.maps.InfoWindow({
+				content: createMessageForm
+			});
+			tmpWindow.open(map, marker);
+			marker.infoWindow = tmpWindow;
+			document.querySelector('#createMessageForm').appendChild(scriptElement);
+			google.maps.event.addListener(marker, 'click', function(e){
+				this.infoWindow.open(map, this);
+			});
+		};
+
+		JSONSend({}, '/api/getmessagecreateform', 'GET', handlerFunc);
+	}
+
 	google.maps.event.addListener(marker, 'click', function (e) {
 		if (this.type === 'run' && this.details !== '') {
 			this.setMap(null);
 			currentCreatedRoute.deleteNode(this.node);
 		} else if (this.type === 'message' && this.details !== '') {
-			var tmpWindow = new google.maps.InfoWindow({
-				content: createInfoWindowContentForMessage(this.details.title, this.details.time, this.owner, this.details.messageBody)
-			});
-			tmpWindow.open(map, this);
+			// var tmpWindow = new google.maps.InfoWindow({
+			// 	content: createInfoWindowContentForMessage(this.details.title, this.details.time, this.owner, this.details.messageBody)
+			// });
+			// tmpWindow.open(map, this);
 		};
 	});
 	__editInProgress = true;
@@ -601,7 +626,7 @@ function eventUpdateHandler(location) {
 	var obj = { time: time, lat: lat, lng: lng };
 	var tmp = null;
 
-	function dataHandler(data) {
+	function runDataHandler(data) {
 		data.forEach(function (point) {
 			if (nearbypointer.indexOf(point._id) === -1) {
 				tmp = point.details.waypoints;
@@ -620,7 +645,18 @@ function eventUpdateHandler(location) {
 		});
 	};
 
-	JSONSend(obj, '/api/getnearbyupcoming', 'POST', dataHandler);
+	function messageDataHandler(data) {
+		data.forEach(function (point) {
+			if (nearbypointer.indexOf(point._id) === -1) {
+				setEventMarkerAtPosition(point.origin.lat, point.origin.lng, 'message', point.details.title, messageIconURL, point.owner, point);
+				nearbypointer.push(point._id);
+				nearby.push(point);
+			}
+		})
+	}
+
+	JSONSend(obj, '/api/getnearbyupcoming', 'POST', runDataHandler);
+	JSONSend(obj, '/api/getnearbymessages', 'POST', messageDataHandler);
 }
 
 function watchLocationToggle() {
