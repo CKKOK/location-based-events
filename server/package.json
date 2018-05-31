@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@google/maps": "^0.4.6",
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^2.0.1",
     "body-parser": "^1.18.2",
     "connect-memcached": "^0.2.0",
     "cookie-parser": "^1.4.3",
